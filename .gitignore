@@ -8,4 +8,4 @@ dist/
 .firebase/
 firebase-debug.log*
 imagens/
-.npmrc
+.npmrc*
