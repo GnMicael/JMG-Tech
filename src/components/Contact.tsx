@@ -1,21 +1,10 @@
 import { useState } from 'react';
 import { brand, cta, sectionCopy, team } from '../content';
 import { mailtoLink, telLink, waLink } from '../contact';
+import { sendContact } from '../sendContact';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
-type Payload = { ok?: boolean; error?: string };
-
 const t = sectionCopy.contact;
-
-/** Lê a resposta com segurança: o gateway pode responder HTML mesmo onde esperamos JSON. */
-async function readJson(res: Response): Promise<Payload> {
-  const text = await res.text();
-  try {
-    return JSON.parse(text) as Payload;
-  } catch {
-    return { ok: false };
-  }
-}
 
 export default function Contact() {
   const [status, setStatus] = useState<Status>('idle');
@@ -33,23 +22,15 @@ export default function Contact() {
 
     setStatus('sending');
     setNote('');
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      const data = await readJson(res);
-      if (!res.ok || !data.ok) throw new Error(data.error || '');
-
+    const result = await sendContact(values);
+    if (result.ok) {
       setStatus('sent');
       setNote(t.sent);
       setValues({ name: '', email: '', message: '', website: '' });
       form.reset();
-    } catch (err) {
+    } else {
       setStatus('error');
-      const reason = err instanceof Error && err.message ? `${err.message} ` : '';
-      setNote(`${reason}${t.failure} ${brand.email}.`);
+      setNote(`${result.error ? `${result.error} ` : ''}${t.failure} ${brand.email}.`);
     }
   }
 

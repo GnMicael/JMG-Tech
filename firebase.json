@@ -3,12 +3,6 @@
     "public": "dist",
     "predeploy": ["npm run build"],
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      {
-        "source": "/api/**",
-        "function": { "functionId": "api", "region": "southamerica-east1" }
-      }
-    ],
     "headers": [
       {
         "source": "/assets/**",
@@ -27,12 +21,8 @@
       }
     ]
   },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "predeploy": ["node scripts/sync-functions.js"],
-      "ignore": ["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log"]
-    }
-  ]
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
 }

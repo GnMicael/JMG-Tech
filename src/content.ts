@@ -11,8 +11,8 @@ export const brand = {
   logoUrl: '/images/logo-jmg-tech-600.png',
   logoOriginalUrl: '/images/logo-jmg-tech-original.png',
   heroImage: '/images/hero-neon.webp',
-  foundedYear: 2023,
-  city: 'Belo Horizonte — MG',
+  foundedYear: 2026,
+  city: 'Hortolândia — SP',
   email: 'jmg.tech7@gmail.com',
   attendance: 'Segunda a sexta, das 9h às 18h · atendimento remoto para todo o Brasil',
   /** Redes sociais: só aparecem no site as que tiverem endereço preenchido. */
@@ -211,10 +211,10 @@ export const services: Service[] = [
 export type Stat = { value: number; suffix: string; label: string };
 
 export const stats: Stat[] = [
-  { value: 24, suffix: '+', label: 'Projetos entregues' },
-  { value: 18, suffix: '', label: 'Clientes atendidos' },
-  { value: 3, suffix: ' anos', label: 'De atuação' },
-  { value: 99, suffix: '%', label: 'Entregas no prazo' },
+  { value: 2, suffix: '+', label: 'Projetos entregues' },
+  { value: 2, suffix: '', label: 'Clientes atendidos' },
+  { value: 1, suffix: ' ano', label: 'De atuação' },
+  { value: 100, suffix: '%', label: 'Entregas no prazo' },
 ];
 
 export const about = {

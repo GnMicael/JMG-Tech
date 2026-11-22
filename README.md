@@ -1,6 +1,6 @@
 # JMG Tech — Portfólio
 
-Portfólio institucional de página única da JMG Tech (React + Vite no navegador, Node.js + Express no servidor),
+Portfólio institucional de página única da JMG Tech (React + Vite, publicado no Firebase Hosting; Node.js + Express para o desenvolvimento local e hospedagem própria),
 com a paleta neon da logo: violeta `#9226FF`, azul `#265CFF`, azul-claro `#2692FF` e ciano `#26C8FF` sobre `#05060A`.
 
 ## Começando
@@ -9,7 +9,7 @@ Requer Node.js 22 ou mais novo.
 
 ```bash
 npm install
-cp .env.example .env     # preencha SMTP_PASS (veja "Formulário de contato")
+cp .env.example .env     # preencha as chaves do seu projeto Firebase
 npm run dev              # site + API em http://localhost:3000
 ```
 
@@ -22,8 +22,9 @@ com atualização automática ao salvar.
 | `npm run build` | Gera o site estático em `dist/` |
 | `npm start` | Produção: serve `dist/` e a API (rode `npm run build` antes) |
 | `npm run typecheck` | Confere os tipos do TypeScript |
-| `npm run deploy:hosting` | Faz o build e publica só o site no Firebase Hosting |
-| `npm run deploy` | Publica site + API (Firebase Hosting + Cloud Function) |
+| `npm run deploy` | Build + publica o site (Hosting) e as regras do Firestore |
+| `npm run deploy:hosting` | Build + publica só o site |
+| `npm run deploy:rules` | Publica só as regras do Firestore |
 
 ## Contatos
 
@@ -46,7 +47,7 @@ formulário. O `whatsapp` é só dígitos com país e DDD, por exemplo `55199201
 | Equipe | Giovane Micael e Matheus Vasques, com foto, descrição, áreas e WhatsApp |
 | Serviços | Software, infraestrutura & cloud e automação |
 | Números | Faixa de destaques com contagem animada |
-| Contato | Formulário que envia e-mail, telefones, botões de WhatsApp e e-mail direto |
+| Contato | Formulário (grava no Firestore), telefones, botões de WhatsApp e e-mail direto |
 | Rodapé | Logo, navegação, direitos reservados |
 
 ## Como personalizar
@@ -60,44 +61,72 @@ Todo o texto, os projetos, as fotos e os links ficam em **`src/content.ts`**. A 
   `category`, `summary`, `url`, `tags`, `metrics`, `challenge`, `solution`, `result`, `stack`, além de `image` e `alt`
   (print em `public/images/projetos/`).
 
+## Firebase (plano Spark)
+
+O site roda no **Firebase Hosting** e o formulário grava no **Firestore**, os dois disponíveis no plano Spark (gratuito).
+Não há Cloud Functions.
+
+### 1. Chaves do projeto no `.env`
+
+No Console do Firebase: engrenagem ao lado de "Visão geral do projeto" → **Configurações do projeto** → **Geral** →
+**Seus apps**. Se ainda não houver um app Web, clique em **</>**, dê um nome e registre (não precisa marcar o Hosting).
+Em **Configuração do SDK**, escolha **Config** e copie os valores para o `.env` (modelo em `.env.example`):
+
+```
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+Essas chaves identificam o projeto e são públicas por natureza. A proteção dos dados está nas regras
+(`firestore.rules`): qualquer pessoa pode **enviar** uma mensagem, mas ninguém consegue ler, alterar ou apagar pelo site.
+
+### 2. Criar o Firestore
+
+Console → **Firestore Database** → **Criar banco de dados** → modo de **produção** → região (por exemplo
+`southamerica-east1`, São Paulo). As regras do repositório substituem as do console no deploy.
+
+### 3. Publicar
+
+```bash
+npx firebase-tools login
+npx firebase-tools use --add     # escolha o projeto (ou troque SEU-PROJETO-FIREBASE em .firebaserc)
+npm run deploy                   # build + Hosting + regras do Firestore
+```
+
+O `npm run build` embute as chaves do `.env` no site, então o `.env` precisa estar preenchido na máquina que publica.
+Domínio próprio: Console → Hosting → **Adicionar domínio personalizado**.
+
+### 4. Onde ver as mensagens
+
+Console → Firestore Database → coleção **`mensagens`** (nome, e-mail, mensagem e data). O plano Spark não tem aviso
+automático por e-mail (a extensão "Trigger Email" exige o plano Blaze), então confira a coleção com frequência. O visitante
+também vê, no próprio formulário, os botões de e-mail e WhatsApp.
+
+### Dev com o Firebase
+
+`npm run dev` também grava no Firestore de verdade quando o `.env` está preenchido. Use um projeto de testes se não quiser
+misturar mensagens de teste com as reais.
+
 ## Formulário de contato
 
-O formulário envia `POST /api/contact`. O backend (Node.js puro, em `server/`) valida os campos, bloqueia robôs
-(campo-isca) e limita a 5 envios por IP a cada 10 minutos, e entrega a mensagem por:
+1. **Com as chaves `VITE_FIREBASE_*` preenchidas:** grava em `mensagens` no Firestore (validado também nas regras).
+2. **Sem elas (servidor próprio com Node):** usa a API `POST /api/contact` de `server/`, que envia e-mail por SMTP
+   (`SMTP_USER`, `SMTP_PASS` com senha de app do Gmail, `MAIL_TO`) e/ou por webhook (`CONTACT_WEBHOOK_URL`),
+   com limite de 5 envios por IP a cada 10 minutos.
+3. **Se o envio falhar:** o formulário mostra botões de e-mail e WhatsApp já com a mensagem preenchida.
 
-1. **E-mail (SMTP):** para `MAIL_TO` (padrão `jmg.tech7@gmail.com`). No Gmail, ative a verificação em duas etapas e crie
-   uma *senha de app* em <https://myaccount.google.com/apppasswords>; use-a em `SMTP_PASS`. O e-mail chega com
-   "responder para" apontando para o visitante.
-2. **Webhook (opcional):** defina `CONTACT_WEBHOOK_URL` (Discord, Slack, Make, Zapier, n8n) para receber também por lá.
-
-Se nenhum canal estiver configurado, ou se o site estiver só no Firebase Hosting sem a API, o formulário mostra botões
-para e-mail e WhatsApp já com a mensagem preenchida. Nenhuma mensagem se perde em silêncio.
-
-Variáveis (`.env`): `SMTP_USER`, `SMTP_PASS`, `MAIL_TO`, `SMTP_HOST`, `SMTP_PORT`, `CONTACT_WEBHOOK_URL`, `PORT`.
-
-## Firebase Hosting
-
-1. Crie um projeto em <https://console.firebase.google.com> (um projeto da JMG Tech, separado do `evolua-8faa4`).
-2. Entre no Firebase e ligue o projeto: `npx firebase-tools login` e `npx firebase-tools use --add`
-   (ou troque `SEU-PROJETO-FIREBASE` em `.firebaserc` pelo ID do projeto).
-3. **Só o site:** `npm run deploy:hosting`. Funciona no plano gratuito. O formulário cai nos botões de e-mail e WhatsApp.
-4. **Site + formulário por e-mail:** a API roda como Cloud Function Node.js 22 (região `southamerica-east1`), que exige o
-   plano Blaze (pago conforme o uso, com cota gratuita). Passos:
-   ```bash
-   cp functions/.env.example functions/.env
-   npx firebase-tools functions:secrets:set SMTP_PASS   # cole a senha de app
-   npm run deploy
-   ```
-   O `deploy` copia o backend de `server/` para `functions/server/` (`scripts/sync-functions.js`), então a API é a mesma
-   do `npm run dev`. O Hosting encaminha `/api/**` para a função (`firebase.json`).
-5. Domínio próprio: Firebase Console → Hosting → Adicionar domínio personalizado.
-6. Depois de publicar, aponte `og:image` e `twitter:image` em `index.html` para
-   `https://SEU-DOMINIO/images/hero-neon.webp` (as redes sociais exigem endereço absoluto).
+O campo-isca invisível descarta robôs simples. Para bloquear abuso mais pesado no Firestore, ative o **App Check** no
+Console do Firebase.
 
 ## Outras hospedagens
 
-`npm run build && npm start` roda o site e a API juntos em qualquer servidor com Node.js 22. O `Dockerfile` faz o mesmo
-em contêiner (`PORT` padrão 3000, verificação de saúde em `/api/health`).
+`npm run build && npm start` roda o site e a API Node juntos em qualquer servidor com Node.js 22. O `Dockerfile` faz o mesmo
+em contêiner (`PORT` padrão 3000, verificação de saúde em `/api/health`). Sem as chaves do Firebase no build, o formulário
+usa a API Node e o e-mail por SMTP.
 
 ## Estrutura
 
@@ -105,6 +134,7 @@ em contêiner (`PORT` padrão 3000, verificação de saúde em `/api/health`).
 index.html               HTML inicial com metadados e conteúdo para buscadores
 src/content.ts           conteúdo editável do site
 src/contact.ts           links de WhatsApp, e-mail e telefone
+src/sendContact.ts       envio do formulário (Firestore ou API Node)
 src/index.css            paleta, tipografia e utilitários visuais
 src/components/          uma seção por arquivo
 server/index.js          Node/Express: `npm run dev` (com Vite) e `npm start`
@@ -112,7 +142,8 @@ server/api.js            rotas /api/health e /api/contact
 server/contact-core.js   validação, limite de envios e entrega da mensagem
 server/mailer.js         e-mail por SMTP (nodemailer)
 server/notify.js         webhook opcional
-functions/               Cloud Function que reutiliza o backend no Firebase
-firebase.json            Hosting + rewrite de /api/** para a função
+firebase.json            Hosting + Firestore
+firestore.rules          regras: só criar mensagens, ninguém lê pelo site
+.env.example             modelo do .env (chaves do Firebase)
 public/                  imagens e 404.html
 ```
