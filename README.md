@@ -171,7 +171,7 @@ Formulário de contato
 Com as chaves VITE_EMAILJS_* preenchidas: envia a mensagem diretamente pelo EmailJS para o endereço configurado no template, sem servidor Node, SMTP ou Cloud Functions.
 
 2.
-Com as chaves VITE_FIREBASE_* preenchidas: também grava uma cópia no Firestore do projeto (coleção mensagens), direto do navegador. Funciona no plano Spark.
+Com VITE_SAVE_CONTACTS_TO_FIRESTORE=true e as chaves VITE_FIREBASE_* preenchidas: também grava uma cópia no Firestore do projeto (coleção mensagens). Essa cópia é opcional e fica desativada por padrão.
 
 3.
 Sem as chaves do EmailJS e do Firebase (ex.: hospedagem própria com Node): usa a API Node em /api/contact, que envia e-mail por SMTP
@@ -192,6 +192,7 @@ Plain Text
 VITE_EMAILJS_SERVICE_ID=
 VITE_EMAILJS_TEMPLATE_ID=
 VITE_EMAILJS_PUBLIC_KEY=
+VITE_SAVE_CONTACTS_TO_FIRESTORE=false
 
 
 

@@ -117,12 +117,15 @@ export async function sendContact(values: ContactValues): Promise<SendResult> {
   }
 
   try {
-    const channels: Promise<unknown>[] = [];
-    if (emailJsEnabled) channels.push(viaEmailJs(data));
-    if (firebaseEnabled) channels.push(viaFirestore(data));
-    if (!channels.length) channels.push(viaNodeApi(data));
+    const channels: { name: string; promise: Promise<unknown> }[] = [];
+    if (emailJsEnabled) channels.push({ name: 'EmailJS', promise: viaEmailJs(data) });
+    if (firebaseEnabled) channels.push({ name: 'Firestore', promise: viaFirestore(data) });
+    if (!channels.length) channels.push({ name: 'API Node', promise: viaNodeApi(data) });
 
-    const results = await Promise.allSettled(channels);
+    const results = await Promise.allSettled(channels.map((channel) => channel.promise));
+    const emailResult = emailJsEnabled ? results[0] : undefined;
+    if (emailResult?.status === 'rejected') throw emailResult.reason;
+
     const failed = results.filter(
       (result): result is PromiseRejectedResult => result.status === 'rejected'
     );
