@@ -1,7 +1,8 @@
 /**
  * Envio do formulário de contato.
  *
- * - Com as chaves VITE_FIREBASE_* no .env, a mensagem é gravada no Firestore do seu projeto
+ * - Com as chaves VITE_EMAILJS_* no .env, a mensagem é enviada pelo EmailJS, direto do navegador.
+ * - Com as chaves VITE_FIREBASE_* no .env, a mensagem também é gravada no Firestore do projeto
  *   (coleção "mensagens"), direto do navegador. Funciona no plano Spark, sem Cloud Functions.
  * - Sem as chaves (ex.: hospedagem própria com Node), usa a API Node em /api/contact.
  */
@@ -12,7 +13,16 @@ export type SendResult = { ok: true } | { ok: false; error: string };
 const env = import.meta.env;
 
 export const firebaseEnabled = Boolean(
-  env.VITE_FIREBASE_API_KEY && env.VITE_FIREBASE_PROJECT_ID && env.VITE_FIREBASE_APP_ID
+  env.VITE_FIREBASE_API_KEY &&
+    env.VITE_FIREBASE_AUTH_DOMAIN &&
+    env.VITE_FIREBASE_PROJECT_ID &&
+    env.VITE_FIREBASE_STORAGE_BUCKET &&
+    env.VITE_FIREBASE_MESSAGING_SENDER_ID &&
+    env.VITE_FIREBASE_APP_ID
+);
+
+export const emailJsEnabled = Boolean(
+  env.VITE_EMAILJS_SERVICE_ID && env.VITE_EMAILJS_TEMPLATE_ID && env.VITE_EMAILJS_PUBLIC_KEY
 );
 
 const LIMITS = { name: 120, email: 160, message: 4000 };
@@ -75,6 +85,19 @@ async function viaNodeApi(data: { name: string; email: string; message: string }
   if (!res.ok || !payload.ok) throw new Error(payload.error || 'api');
 }
 
+async function viaEmailJs(data: { name: string; email: string; message: string }) {
+  const { default: emailjs } = await import('@emailjs/browser');
+  await withTimeout(
+    emailjs.send(
+      env.VITE_EMAILJS_SERVICE_ID!,
+      env.VITE_EMAILJS_TEMPLATE_ID!,
+      data,
+      { publicKey: env.VITE_EMAILJS_PUBLIC_KEY! }
+    ),
+    12000
+  );
+}
+
 export async function sendContact(values: ContactValues): Promise<SendResult> {
   // Campo-isca: pessoas não veem nem preenchem; robôs sim. Finge sucesso e descarta.
   if (values.website.trim()) return { ok: true };
@@ -94,10 +117,21 @@ export async function sendContact(values: ContactValues): Promise<SendResult> {
   }
 
   try {
-    if (firebaseEnabled) await viaFirestore(data);
-    else await viaNodeApi(data);
+    const channels: Promise<unknown>[] = [];
+    if (emailJsEnabled) channels.push(viaEmailJs(data));
+    if (firebaseEnabled) channels.push(viaFirestore(data));
+    if (!channels.length) channels.push(viaNodeApi(data));
+
+    const results = await Promise.allSettled(channels);
+    const failed = results.filter(
+      (result): result is PromiseRejectedResult => result.status === 'rejected'
+    );
+    if (failed.length === results.length) throw failed[0]?.reason || new Error('Nenhum canal disponível');
     return { ok: true };
-  } catch {
+  } catch (error) {
+    // Mantém a mensagem pública amigável, mas deixa o erro disponível para depuração
+    // no navegador (Console) sem expor detalhes técnicos ao visitante.
+    console.error('[contact] falha ao enviar mensagem:', error);
     // Detalhes técnicos (regras, rede, hospedagem estática) não ajudam o visitante: o formulário
     // mostra os canais diretos (e-mail e WhatsApp).
     return { ok: false, error: '' };
