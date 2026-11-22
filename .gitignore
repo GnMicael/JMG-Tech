@@ -7,3 +7,5 @@ dist/
 !.env.example
 .firebase/
 firebase-debug.log*
+imagens/
+.npmrc
