@@ -62,8 +62,9 @@ export type Project = {
 };
 
 /**
- * Exatamente 3 vagas de projeto. Para preencher a terceira, troque `status` para 'live'
- * e complete os campos (imagem em /public/images/projetos/, url, textos e métricas).
+ * Exatamente 3 vagas de projeto. Para abrir uma vaga nova, use `status: 'open'`
+ * (veja o formato em Project). Para preencher, use `status: 'live'` e complete os campos
+ * (imagem em /public/images/projetos/, url, textos e métricas).
  */
 export const projects: Project[] = [
   {
@@ -114,20 +115,26 @@ export const projects: Project[] = [
     stack: ['Firebase Hosting', 'Site responsivo'],
   },
   {
-    id: 'proximo-projeto',
-    status: 'open',
-    name: 'Seu próximo projeto',
-    category: 'Vaga em aberto',
+    id: 'project-mind',
+    status: 'live',
+    name: 'Project Mind',
+    category: 'Gestão de projetos',
     summary:
-      'Este espaço está reservado para o próximo case da JMG Tech. Se você tem um desafio parecido, vamos conversar.',
-    image: '',
-    alt: '',
-    tags: [],
-    metrics: [],
-    challenge: '',
-    solution: '',
-    result: '',
-    stack: [],
+      'Plataforma para transformar ideias em projetos organizados: quadro com as colunas A fazer, Em andamento e Concluído, barra de progresso e tudo reunido em um só espaço.',
+    image: '/images/projetos/project-mind.webp',
+    alt: 'Página inicial do Project Mind em tema escuro com laranja, com o título "Sua mente cria. O Project Mind organiza." e um exemplo de quadro com tarefas por status',
+    tags: ['Produtividade', 'Gestão de projetos', 'Web app', 'Quadro kanban'],
+    metrics: [
+      { label: 'Colunas de status', value: '3' },
+      { label: 'Seções no site', value: '4' },
+    ],
+    challenge:
+      'Ideias e tarefas costumam ficar espalhadas em anotações e conversas, o que dificulta saber o que já foi feito e o que falta.',
+    solution:
+      'O Project Mind reúne tudo em um quadro visual dividido em A fazer, Em andamento e Concluído, com barra de progresso para acompanhar o avanço. A página de entrada apresenta o produto com um exemplo de quadro e chamadas diretas para começar grátis ou conhecer os recursos.',
+    result:
+      'Uma porta de entrada clara, que mostra o produto em ação logo na primeira tela e leva a pessoa a criar a conta ou explorar os recursos.',
+    stack: ['Interface escura', 'Quadro kanban', 'Landing page'],
   },
 ];
 
