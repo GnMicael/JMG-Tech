@@ -123,7 +123,7 @@ export const projects: Project[] = [
       'Plataforma para transformar ideias em projetos organizados: quadro com as colunas A fazer, Em andamento e Concluído, barra de progresso e tudo reunido em um só espaço.',
     image: '/images/projetos/project-mind.webp',
     alt: 'Página inicial do Project Mind em tema escuro com laranja, com o título "Sua mente cria. O Project Mind organiza." e um exemplo de quadro com tarefas por status',
-    url: 'https://jmg-tech.web.app',
+    url: 'https://project-mind-3dd95.web.app',
     tags: ['Produtividade', 'Gestão de projetos', 'Web app', 'Quadro kanban'],
     metrics: [
       { label: 'Colunas de status', value: '3' },
