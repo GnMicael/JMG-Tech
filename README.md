@@ -32,7 +32,7 @@ Todo o texto, os projetos, as fotos e os links ficam em src/content.ts. A paleta
 
 Imagens em public/images/ (servidas por /images/...). Fotos da equipe em proporção 4:5; prints de projeto em 2:1.
 Redes sociais (brand.social): só aparecem as que tiverem endereço preenchido.
-Project Mind: o item project-mind de projects ainda não tem url; adicione url: '...' para exibir o botão "Visitar projeto". Para outro projeto no lugar, edite name, category, summary, url, tags, metrics, challenge, solution, result, stack, além de image e alt (print em public/images/projetos/).
+Project Mind: o item project-mind de projects usa url: 'https://jmg-tech.web.app'; troque pelo endereço do projeto quando ele tiver um próprio. Para outro projeto no lugar, edite name, category, summary, url, tags, metrics, challenge, solution, result, stack, além de image e alt (print em public/images/projetos/).
 
 Firebase (plano Spark)
 
